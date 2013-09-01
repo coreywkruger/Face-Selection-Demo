@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Three.js Navigation</title>
+	</head>
+	<body style="font-family: Tahoma; line-height:90%">
+        <meta charset="utf-8">
+			<div id="title" style="text-align: center;"><h1>Three.js Navigation & Control Demo</h1></div>
+            <div id="screen" style="margin: 0px auto;"></div><br> 
+			<div style="text-align: center;">
+				<div><b>Select (De-select) Object:</b>&nbsp;&nbsp;&nbsp;ALT + Left mouse button</div>
+				<br />
+				<div><b>Select (De-select) Face:</b>&nbsp;&nbsp;&nbsp;Left mouse button (After object has been selected)</div>
+				<br />
+				<div><b>Select Multiple Faces:</b>&nbsp;&nbsp;&nbsp;SHIFT + Left mouse button (After object has been selected)</div>
+				<br />
+				<div><b>Rotate Camera:</b>&nbsp;&nbsp;&nbsp;Middle mouse button</div>
+				<br />
+				<div><b>Translate Camera:</b>&nbsp;&nbsp;&nbsp;SHIFT + Middle mouse button</div>
+				<br />
+				<div><b>Zoom Camera:</b>&nbsp;&nbsp;&nbsp;Scroll wheel</div>
+				<br />
+			</div>        
+        <script type="text/javascript" src="./js/three.js"></script>
+        <script type="text/javascript" src="./js/controls/orbit.js"></script>
+        <script type="text/javascript" src="./js/controls/grabber.js"></script>
+		<script type="text/javascript" src="./js/controls/faceSelector.js"></script>
+		<script type="text/javascript" src="./js/controls/boundingBox.js"></script>
+        <script type="text/javascript" src="./js/Detector.js"></script>
+		
+        <script type="text/javascript">
+		
+            function init( webglFlag ) {
+				
+				var screen = document.getElementById('screen');
+				screen.style.width = window.innerWidth / 2 - 40 + "px";
+				screen.style.height = ( 3 / 5 ) * eval( screen.style.width.slice( 0, -2 ) ) + "px";
+				var scene = new THREE.Scene();
+		  
+				var camera = new THREE.PerspectiveCamera();
+				camera.position.z = 8;
+				scene.add( camera );
+
+				//Viewport handles scaling from browser window coordinates to three.js coordinates.
+				camera.viewportConfig( 5, 3, camera.position.z, screen );
+				var scales = camera.getViewScales();
+
+				//CamOrbit handles all navigation. It acts like a pivot point around which the user can move.
+				var camOrbit = new THREE.orbitControls( camera, scales.width, scales.height, scene, screen );
+	 
+				//  RENDERER
+				webglFlag = typeof webglFlag !== 'undefined' ? webglFlag : false;
+				var renderer;
+				if (webglFlag) {
+					renderer = new THREE.WebGLRenderer();
+				} else {
+					renderer = new THREE.CanvasRenderer();
+				}
+				
+				renderer.setSize( eval( screen.style.width.slice( 0, -2) ), eval(screen.style.height.slice( 0, -2 ) ) );
+				screen.appendChild( renderer.domElement );
+				renderer.setClearColor ( new THREE.Color(0x444444), 1 );
+				//  END RENDERER
+				
+				//  cube
+				var cube = new THREE.Mesh( new THREE.CubeGeometry( 1, 1, 1 ), new THREE.MeshLambertMaterial( { color: 0xFF0000 } ) );
+				cube.name = "cube";
+				cube.rotation.set( Math.PI / 4, Math.PI / 4, 0 );
+				cube.position.set( 2, 0, 0 );
+				scene.add(cube);
+				
+				//  cylinder
+				var cylinder = new THREE.Mesh( new THREE.CylinderGeometry( 1, 1, 2, 8, 1, false ), new THREE.MeshLambertMaterial( { color: 0xFFFF00, shading: THREE.FlatShading } ) );
+				cylinder.name = "cylinder";
+				cylinder.rotation.set( 0, Math.PI / 4, Math.PI / 4 );
+				cylinder.position.set( 0, -2, -4 );
+				scene.add( cylinder );
+				
+				//  sphere
+				var sphere = new THREE.Mesh( new THREE.OctahedronGeometry( 1, 1 ), new THREE.MeshLambertMaterial( { color: 0x0000FF, shading: THREE.FlatShading } ) );
+				sphere.name = "sphere";
+				sphere.position.set( -1, 1, 1 );
+				//sphere.scale.set( 0.7, 0.7, 0.7 );
+				scene.add( sphere );
+				
+				//  Plane
+				var plane = new THREE.Mesh( new THREE.PlaneGeometry(20, 20, 8, 8), new THREE.MeshLambertMaterial( { color: 0x777777, shading: THREE.FlatShading } ) );
+				plane.name = "plane";
+				plane.rotation.set( - Math.PI / 2, 0, 0 );
+				plane.position.set( 0, - 3.5, 0 );
+				scene.add( plane );
+				
+				//Lights!!
+				var light = new THREE.DirectionalLight( 0x404040, 5, 100 );
+				light.position.set( 5, 5, 10 );
+				scene.add( light );
+				light.target = plane;
+				
+				var grabCube = new THREE.faceSelector( scene, camera, scales.width, scales.height, screen );
+				grabCube.addObject( [ cube, sphere, cylinder ] );
+
+				document.addEventListener( 'keydown', function ( event ) {
+				
+					if ( event.keyCode === 81 ) {
+					
+						grabCube.useBoundingBox( false );
+					
+					} else if ( event.keyCode == 87 ) {
+					
+						grabCube.useBoundingBox( true );
+					
+					} else if ( event.keyCode == 17 ) {
+					
+//						var info = grabCube.getActiveInfo();
+//
+//						if ( info != undefined ) {
+//						
+//							for ( var i = 0 ; i < info.faces.length ; i++ ) {
+//								
+//								info.object.setVertexY( info.faces[ i ].face.a, 2 );
+//								info.object.setVertexY( info.faces[ i ].face.b, 2 );
+//								info.object.setVertexY( info.faces[ i ].face.c, 2 );
+//		
+//							}
+//							
+//							grabCube.updateRender();
+//							
+//						}
+						
+					}
+				
+				}, false );
+				
+				function render() {
+
+					camOrbit.update();
+
+					requestAnimationFrame(render);
+					renderer.render(scene, camera);
+					
+				}
+				
+				render();
+            
+            }
+
+            if (Detector.webgl) {
+                init( true );
+            } else {
+                init();
+            }       
+			
+        </script>
+	</body>
+</html>
