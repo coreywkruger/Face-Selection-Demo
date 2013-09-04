@@ -2,15 +2,18 @@
 <html>
 	<head>
 		<title>Three.js Navigation</title>
+	
 	</head>
 	<body style="font-family: Tahoma; line-height:90%">
         <meta charset="utf-8">
-			<div id="title" style="text-align: center;"><h1>Three.js Navigation & Control Demo</h1></div>
-            <div id="screen" style="margin: 0px auto;"></div><br> 
+			<div id="title" style="text-align: center;"><h1>Three.js Face Selection Demo</h1></div>
+				
+            <div id="screen" style="margin: 0px auto;"></div>
+			<select id = "group-drop-down" style="position: absolute; z-index: 1; left: 100px; top: 100px;"></select>
+				
+			<br />
 			<div style="text-align: center;">
-				<div><b>Select (De-select) Object:</b>&nbsp;&nbsp;&nbsp;ALT + Left mouse button</div>
-				<br />
-				<div><b>Select (De-select) Face:</b>&nbsp;&nbsp;&nbsp;Left mouse button (After object has been selected)</div>
+				<div><b>Select (De-select) Face/Object:</b>&nbsp;&nbsp;&nbsp;Left mouse button (After object has been selected)</div>
 				<br />
 				<div><b>Select Multiple Faces:</b>&nbsp;&nbsp;&nbsp;SHIFT + Left mouse button (After object has been selected)</div>
 				<br />
@@ -20,29 +23,118 @@
 				<br />
 				<div><b>Zoom Camera:</b>&nbsp;&nbsp;&nbsp;Scroll wheel</div>
 				<br />
-			</div>        
-        <script type="text/javascript" src="./js/three.js"></script>
+			</div>  
+			
+        <!--<script type="text/javascript" src="./three.js/build/three.js"></script>-->
+		<script type="text/javascript" src="./js/three.js"></script>
         <script type="text/javascript" src="./js/controls/orbit.js"></script>
         <script type="text/javascript" src="./js/controls/grabber.js"></script>
+		<script type="text/javascript" src="./js/controls/hud.js"></script>
 		<script type="text/javascript" src="./js/controls/faceSelector.js"></script>
 		<script type="text/javascript" src="./js/controls/boundingBox.js"></script>
         <script type="text/javascript" src="./js/Detector.js"></script>
 		
         <script type="text/javascript">
 		
+			function generateHud () {
+			
+				////////////////////////////////////////////////////////////////////////////////////////////
+				//All of the material stuff below will be moved elsewhere later for the sake of cleanliness
+				////////////////////////////////////////////////////////////////////////////////////////////
+				
+				var texture = THREE.ImageUtils.loadTexture( './images/eyedropper.png' );
+				var front = THREE.ImageUtils.loadTexture( './images/Front.png' );
+				var back = THREE.ImageUtils.loadTexture( './images/Back.png' );
+				var left = THREE.ImageUtils.loadTexture( './images/Left.png' );
+				var right = THREE.ImageUtils.loadTexture( './images/Right.png' );
+				var top = THREE.ImageUtils.loadTexture( './images/Top.png' );
+				var bottom = THREE.ImageUtils.loadTexture( './images/Bottom.png' );
+				
+				var useObjects = THREE.ImageUtils.loadTexture( './images/Objects.png' );
+				var useFaces = THREE.ImageUtils.loadTexture( './images/Faces.png' );
+				var createGroup = THREE.ImageUtils.loadTexture( './images/createGroup.png' );
+				//1378288696_eyedropper.png
+				
+				console.log( right );
+				
+				var faceMat = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: useObjects } );
+				var objectMat = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: useFaces } );
+				
+				var white = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: texture } );
+				
+				var leftMat = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: left } );
+				var rightMat = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: right } );
+
+				var topMat = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: top } );
+				var bottomMat = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: bottom } );
+				
+				var frontMat = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: front } );
+				var backMat = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: back } );
+				
+				var yellow = new THREE.MeshBasicMaterial( { color: 0xffff00, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true } );
+				var groupMat = new THREE.MeshBasicMaterial( { color: 0x00ff00, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true, map: createGroup } );
+				
+				var obs = [
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), faceMat ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), objectMat ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), yellow ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), leftMat ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), rightMat ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), topMat ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), bottomMat ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), frontMat ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), backMat ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), white ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), groupMat ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), yellow ),
+					new THREE.Mesh( new THREE.PlaneGeometry( 1, 1 ), yellow )
+				];
+				
+				obs[ 0 ].name = 'select-objects';
+				obs[ 1 ].name = 'select-faces';
+				obs[ 2 ].name = 'select-all';
+				
+				obs[ 3 ].name = 'left';
+				obs[ 4 ].name = 'right';
+				obs[ 5 ].name = 'top';
+				obs[ 6 ].name = 'bottom';
+				obs[ 7 ].name = 'front';
+				obs[ 8 ].name = 'back';
+				
+				obs[ 9 ].name = 'color-picker';
+				obs[ 10 ].name = 'create-group';
+				obs[ 11 ].name = 'hide-faces';
+				obs[ 12 ].name = 'select-all-in-group';
+				
+				return obs;
+			}
+		
             function init( webglFlag ) {
 				
-				var screen = document.getElementById('screen');
+				var screen = document.getElementById( 'screen' );
 				screen.style.width = window.innerWidth / 2 - 40 + "px";
 				screen.style.height = ( 3 / 5 ) * eval( screen.style.width.slice( 0, -2 ) ) + "px";
+				
+				var groupDropDown = document.getElementById( 'group-drop-down' );
+				groupDropDown.style.left = screen.offsetLeft + 10 + 'px';
+				groupDropDown.style.top = screen.offsetTop + 10 + 'px';
+				
+				window.onresize = function () {
+				
+					groupDropDown.style.left = screen.offsetLeft + 10 + 'px';
+					groupDropDown.style.top = screen.offsetTop + 10 + 'px';
+				
+				}
+				
 				var scene = new THREE.Scene();
-		  
 				var camera = new THREE.PerspectiveCamera();
 				camera.position.z = 8;
 				scene.add( camera );
 
 				//Viewport handles scaling from browser window coordinates to three.js coordinates.
-				camera.viewportConfig( 5, 3, camera.position.z, screen );
+				camera.viewportConfig( 5, 3, camera.position.z, scene, screen );
+				camera.addHud( generateHud() );
+				camera.createAxisVis();
 				var scales = camera.getViewScales();
 
 				//CamOrbit handles all navigation. It acts like a pivot point around which the user can move.
@@ -57,13 +149,32 @@
 					renderer = new THREE.CanvasRenderer();
 				}
 				
-				renderer.setSize( eval( screen.style.width.slice( 0, -2) ), eval(screen.style.height.slice( 0, -2 ) ) );
+				renderer.setSize( eval( screen.style.width.slice( 0, -2) ), eval( screen.style.height.slice( 0, -2 ) ) );
 				screen.appendChild( renderer.domElement );
 				renderer.setClearColor ( new THREE.Color(0x444444), 1 );
 				//  END RENDERER
 				
 				//  cube
 				var cube = new THREE.Mesh( new THREE.CubeGeometry( 1, 1, 1 ), new THREE.MeshLambertMaterial( { color: 0xFF0000 } ) );
+				cube.geometry.colorsNeedUpdate = true;
+				
+				var cubeMatList = [];
+
+				for ( var i = 0 ; i < cube.geometry.faces.length ; i++ ) {
+					
+					cubeMatList[ i ] = ( new THREE.MeshLambertMaterial( { color: 0xffffff, shading: THREE.FlatShading, vertexColors: THREE.FaceColors, visible: true, side: THREE.DoubleSide } ) );
+					
+				}
+
+				cube.material = new THREE.MeshFaceMaterial( cubeMatList );
+				
+				for ( var i = 0 ; i < cubeMatList.length ; i++ ) {
+				
+					cube.geometry.faces[ i ].materialIndex = i;
+					cube.geometry.colorsNeedUpdate = true;
+				
+				}
+				
 				cube.name = "cube";
 				cube.rotation.set( Math.PI / 4, Math.PI / 4, 0 );
 				cube.position.set( 2, 0, 0 );
@@ -71,16 +182,53 @@
 				
 				//  cylinder
 				var cylinder = new THREE.Mesh( new THREE.CylinderGeometry( 1, 1, 2, 8, 1, false ), new THREE.MeshLambertMaterial( { color: 0xFFFF00, shading: THREE.FlatShading } ) );
+				cylinder.geometry.colorsNeedUpdate = true;
+				
+				var cylMatList = [];
+
+				for ( var i = 0 ; i < cylinder.geometry.faces.length ; i++ ) {
+					
+					cylMatList[ i ] = ( new THREE.MeshLambertMaterial( { color: 0xffffff, shading: THREE.FlatShading, vertexColors: THREE.FaceColors, visible: true, side: THREE.DoubleSide } ) );
+					
+				}
+
+				cylinder.material = new THREE.MeshFaceMaterial( cylMatList );
+				
+				for ( var i = 0 ; i < cylMatList.length ; i++ ) {
+				
+					cylinder.geometry.faces[ i ].materialIndex = i;
+					cylinder.geometry.colorsNeedUpdate = true;
+				
+				}
+				
 				cylinder.name = "cylinder";
 				cylinder.rotation.set( 0, Math.PI / 4, Math.PI / 4 );
 				cylinder.position.set( 0, -2, -4 );
 				scene.add( cylinder );
 				
-				//  sphere
-				var sphere = new THREE.Mesh( new THREE.OctahedronGeometry( 1, 1 ), new THREE.MeshLambertMaterial( { color: 0x0000FF, shading: THREE.FlatShading } ) );
+				
+				var sphere = new THREE.Mesh( new THREE.OctahedronGeometry( 1, 1 ) );
+				sphere.geometry.colorsNeedUpdate = true;
+				
+				var sphereMatList = [];
+
+				for ( var i = 0 ; i < sphere.geometry.faces.length ; i++ ) {
+					
+					sphereMatList[ i ] = ( new THREE.MeshLambertMaterial( { color: 0xffffff, shading: THREE.FlatShading, vertexColors: THREE.FaceColors, visible: true, side: THREE.DoubleSide } ) );
+					
+				}
+
+				sphere.material = new THREE.MeshFaceMaterial( sphereMatList );
+				
+				for ( var i = 0 ; i < sphereMatList.length ; i++ ) {
+				
+					sphere.geometry.faces[ i ].materialIndex = i;
+					sphere.geometry.colorsNeedUpdate = true;
+				
+				}
+				
 				sphere.name = "sphere";
 				sphere.position.set( -1, 1, 1 );
-				//sphere.scale.set( 0.7, 0.7, 0.7 );
 				scene.add( sphere );
 				
 				//  Plane
@@ -98,7 +246,8 @@
 				
 				var grabCube = new THREE.faceSelector( scene, camera, scales.width, scales.height, screen );
 				grabCube.addObject( [ cube, sphere, cylinder ] );
-
+				grabCube.setInitialGroups();
+				
 				document.addEventListener( 'keydown', function ( event ) {
 				
 					if ( event.keyCode === 81 ) {
@@ -109,24 +258,6 @@
 					
 						grabCube.useBoundingBox( true );
 					
-					} else if ( event.keyCode == 17 ) {
-					
-//						var info = grabCube.getActiveInfo();
-//
-//						if ( info != undefined ) {
-//						
-//							for ( var i = 0 ; i < info.faces.length ; i++ ) {
-//								
-//								info.object.setVertexY( info.faces[ i ].face.a, 2 );
-//								info.object.setVertexY( info.faces[ i ].face.b, 2 );
-//								info.object.setVertexY( info.faces[ i ].face.c, 2 );
-//		
-//							}
-//							
-//							grabCube.updateRender();
-//							
-//						}
-						
 					}
 				
 				}, false );
@@ -137,7 +268,7 @@
 
 					requestAnimationFrame(render);
 					renderer.render(scene, camera);
-					
+										
 				}
 				
 				render();

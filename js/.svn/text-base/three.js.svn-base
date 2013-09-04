@@ -9743,30 +9743,13 @@ THREE.PerspectiveCamera = function ( fov, aspect, near, far ) {
 	this.aspect = aspect !== undefined ? aspect : 1;
 	this.near = near !== undefined ? near : 0.1;
 	this.far = far !== undefined ? far : 2000;
-	this.planeDistance = undefined;
-	
+
 	this.updateProjectionMatrix();
 	
 	//Added 8-26-13
 	this.distanceToSide = 1;
 	this.distanceToTop = 1;
 	this.domElement = undefined;
-	
-	//Added 9-2-13
-	//Axis visualization stuff
-	this.arrowX = undefined;
-	this.arrowY = undefined;
-	this.arrowZ = undefined;
-	this.axisAnchor = new THREE.Gyroscope();//new THREE.Object3D();
-	this.scene = undefined;
-	
-	//Added 9-2-13
-	//hud stuff
-	this.hudCam = new THREE.OrthographicCamera();
-	this.hudScene = new THREE.Scene();
-	this.hud = new THREE.hud( this.hudScene );
-	this.hudScale = 0.55;
-	
 };
 
 THREE.PerspectiveCamera.prototype = Object.create( THREE.Camera.prototype );
@@ -9882,14 +9865,10 @@ THREE.PerspectiveCamera.prototype.clone = function () {
 };
 
 //Added 8-26-13
-THREE.PerspectiveCamera.prototype.viewportConfig = function ( side, top, planeDistance, scene, domElement ) {
+THREE.PerspectiveCamera.prototype.viewportConfig = function ( side, top, planeDistance, domElement ) {
 
-	this.matrixAutoUpdate = true;
-	this.scene = scene;
 	this.fov = 2 * Math.atan( ( top / planeDistance ) ) * 180 / Math.PI;
 	this.aspect = side / top;
-	
-	this.planeDistance = planeDistance;
 	
 	this.distanceToSide = side;
 	this.distanceToTop = top;
@@ -9912,102 +9891,6 @@ THREE.PerspectiveCamera.prototype.getViewScales = function () {
 	};
 
 };
-
-//Added 9-2-13
-THREE.PerspectiveCamera.prototype.createAxisVis = function () {
-
-	this.arrowX = new THREE.ArrowHelper(new THREE.Vector3( 1, 0, 0), new THREE.Vector3( 0, 0, 0), this.hudScale, 0xFF0000);
-	this.arrowY = new THREE.ArrowHelper(new THREE.Vector3( 0, 1, 0), new THREE.Vector3( 0, 0, 0), this.hudScale, 0x00FF00);
-	this.arrowZ = new THREE.ArrowHelper(new THREE.Vector3( 0, 0, 1), new THREE.Vector3( 0, 0, 0), this.hudScale, 0x0000FF);
-	
-	var HandleMaterial = function ( color, opacity ) {
-		var material = new THREE.MeshBasicMaterial();
-		material.color = color;
-		material.side = THREE.DoubleSide;
-		material.depthTest = false;
-		material.depthWrite = false;
-		material.opacity = opacity !== undefined ? opacity : 1;
-		material.transparent = true;
-		return material;
-	}
-	
-	var LineMaterial = function ( color, opacity ) {
-		var material = new THREE.LineBasicMaterial();
-		material.color = color;
-		material.depthTest = false;
-		material.depthWrite = false;
-		material.opacity = opacity !== undefined ? opacity : 1;
-		material.transparent = true;
-		return material;
-	}
-	
-	this.arrowX.cone.material = HandleMaterial( new THREE.Color( 0xFF0000 ), 1 );
-	this.arrowY.cone.material = HandleMaterial( new THREE.Color( 0x00FF00 ), 1 );
-	this.arrowZ.cone.material = HandleMaterial( new THREE.Color( 0x0000FF ), 1 );
-	this.arrowX.line.material = LineMaterial( new THREE.Color( 0xFF0000 ), 1 );
-	this.arrowY.line.material = LineMaterial( new THREE.Color( 0x00FF00 ), 1 );
-	this.arrowZ.line.material = LineMaterial( new THREE.Color( 0x0000FF ), 1 );
-	
-	this.axisAnchor.add( this.arrowX );
-	this.axisAnchor.add( this.arrowY );
-	this.axisAnchor.add( this.arrowZ );
-	
-	this.axisAnchor.position.x = - this.distanceToSide + 3 * this.hudScale / 2;
-	this.axisAnchor.position.y = - this.distanceToTop + 3 * this.hudScale / 2;
-	this.axisAnchor.position.z = - this.planeDistance;
-	
-	this.add( this.axisAnchor );
-	
-	//this.scene.add( this.axisAnchor );
-	
-//	this.axisAnchor.position.x = - 1;
-//	this.axisAnchor.position.y = - 1;
-
-};
-
-//Added 9-2-13
-THREE.PerspectiveCamera.prototype.addHud = function ( hudButtons ) {
-
-	this.hudCam.left = this.hudCam.right = this.distanceToSide;
-	this.hudCam.top = this.hudCam.bottom = this.distanceToTop;
-	this.hudCam.near = this.near;
-	this.hudCam.far = this.far;
-
-	this.hud.setButtonWidth( this.hudScale );
-	this.hud.setButtonHeight( this.hudScale );
-	this.hud.addButton( hudButtons );
-	this.hud.spaceButtons();
-	this.hud.offsetButtons( this.distanceToSide, this.distanceToTop, this.planeDistance );
-		
-	for ( var i = 0 ; i < hudButtons.length ; i++ ) {
-	
-		this.add( hudButtons[ i ] );
-		
-	}
-
-};
-
-
-//Added 9-2-13
-//THREE.PerspectiveCamera.prototype.getParentScene = function () {
-//	
-//	function getLastParent ( ob ) {
-//		
-//		if ( ob.parent != undefined ) {
-//			
-//			getLastParent( ob.parent );
-//			
-//		} else {
-//		
-//			return ob;
-//			
-//		}
-//		
-//	}
-//	
-//	this.scene = getLastParent( this );;
-//
-//};
 /**
  * @author mrdoob / http://mrdoob.com/
  * @author alteredq / http://alteredqualia.com/
